@@ -24,8 +24,11 @@ rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(line_detector src/laser_detector.cpp)
+rosbuild_add_library(calibration src/calibration.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(line_detector_node src/laser_detector_node.cpp ${HEADER_FILES})
+rosbuild_add_executable(calibration_node src/calibration_node.cpp ${HEADER_FILES})
 target_link_libraries(line_detector_node line_detector)
+target_link_libraries(calibration_node calibration)
