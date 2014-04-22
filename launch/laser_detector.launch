@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+	
+	<node pkg="tue_calibration" type="line_detector_node" name="laser_line_detector" respawn="false" output="screen">
+		<remap from="/scan" to="/amigo/base_front_laser"/>
+	</node>
+	
+</launch>
