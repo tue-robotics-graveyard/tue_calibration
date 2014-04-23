@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
+find_package(Eigen REQUIRED)
+include_directories(${EIGEN_INCLUDE_DIRS})
+add_definitions(${EIGEN_DEFINITIONS})
+
 # Set the build type.  Options are:
 #  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
 #  Debug          : w/ debug symbols, w/o optimization
@@ -23,12 +27,25 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
-rosbuild_add_library(line_detector src/laser_detector.cpp)
-rosbuild_add_library(calibration src/calibration.cpp)
+
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
+
+
+
+# Line detector
+rosbuild_add_library(line_detector src/laser_detector.cpp)
 rosbuild_add_executable(line_detector_node src/laser_detector_node.cpp ${HEADER_FILES})
-rosbuild_add_executable(calibration_node src/calibration_node.cpp ${HEADER_FILES})
 target_link_libraries(line_detector_node line_detector)
+
+# Kinect detector
+rosbuild_add_executable(kinect_detector_node src/chessboard_detector_node.cpp src/detect_calibration_pattern.cpp ${HEADER_FILES})
+#rosbuild_link_boost()
+find_package(OpenCV)
+target_link_libraries(kinect_detector_node ${OpenCV_LIBRARIES})
+
+# Calibration node
+rosbuild_add_library(calibration src/calibration.cpp)
+rosbuild_add_executable(calibration_node src/calibration_node.cpp ${HEADER_FILES})
 target_link_libraries(calibration_node calibration)

@@ -14,6 +14,15 @@
   <depend package="std_srvs"/>
   <depend package="visualization_msgs"/>
   <depend package="tf"/>
+  
+  <!-- KDL stuff -->
+  <depend package="kdl"/>
+  <depend package="kdl_parser"/>
+  
+  <!-- Chessboard stuff -->
+  <depend package="cv_bridge"/>
+  <depend package="image_transport"/>
+  <depend package="image_geometry"/>
 
 </package>
 

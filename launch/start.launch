@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<launch>
+	
+	<!-- Laser detector -->
+	<node pkg="tue_calibration" type="line_detector_node" name="laser_line_detector" respawn="false" output="screen">
+		<remap from="/scan" to="/amigo/base_front_laser"/>
+	</node>
+	
+	<!-- Kinect detector -->
+	<node pkg="tue_calibration" type="kinect_detector_node" name="kinect_checkerboard_detector" respawn="false" output="screen"></node>
+	
+	<!-- Calibration node -->
+	<node pkg="tue_calibration" type="calibration_node" name="calibration_node" respawn="false" output="screen"></node>
+	
+</launch>

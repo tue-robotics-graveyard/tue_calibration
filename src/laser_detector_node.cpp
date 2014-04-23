@@ -38,19 +38,18 @@ bool toggleCallback(tue_calibration::getPose::Request   &req,
 
 int main(int argc, char **argv) {
 
-    // Initialize node
+    /// Initialize node
     ros::init(argc, argv, "laser_detector");
     ros::NodeHandle nh_private("~");
     ros::Rate rate(loop_rate_);
 
     ros::Subscriber    laser_sub  = nh_private.subscribe("/scan", 1, laserCallback);;
-    ros::ServiceServer server_    = nh_private.advertiseService("/toggle_line_detector", toggleCallback);
+    ros::ServiceServer server_    = nh_private.advertiseService("toggle_line_detector", toggleCallback);
 
     line_detector_.init();
 
     while (ros::ok()) {
         ros::spinOnce();
-        //demolaser.publishTF();
         rate.sleep();
     }
 }
