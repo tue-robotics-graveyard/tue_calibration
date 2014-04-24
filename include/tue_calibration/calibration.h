@@ -22,6 +22,7 @@
 #include <kdl/jntarray.hpp>
 
 #include <tue_calibration/chain.h>
+#include "tue_calibration/optimizer.h"
 
 
 class Calibration {
@@ -45,6 +46,12 @@ private:
     /** @brief Toggle callback function: either adds measurements or computes result */
     void toggleCallback(const std_msgs::String::ConstPtr& msg);
 
+    /** @brief adds measurement to optimization data vector */
+    bool addMeasurement();
+
+    /** @brief calls optimizer */
+    bool calibrate();
+
     /**
      * @brief Converts Converts geometry_msgs::PoseStamped to KDL::Frame
      * @param pose: input pose
@@ -66,19 +73,19 @@ private:
     /** Topic to toggle measurements */
     ros::Subscriber toggle_sub_;
 
-    /** Struct containing the measurement information that is required for the optimization */
-    struct optimization_data {
-        KDL::Frame laser_meas_in_laser;
-        KDL::Frame kinect_meas_in_kinect;
-        //KDL::Frame laser_in_baselink;
-        //KDL::Frame kinect_in_baselink;
-        KDL::JntArray kinect_joint_data;
-        //KDL::Jacobian laser_jacobian;
-        //KDL::Jacobian kinect_jacobian;
-    };
+    ///** Struct containing the measurement information that is required for the optimization */
+    //struct OptimizationData {
+    //    KDL::Frame laser_meas_in_laser;
+    //    KDL::Frame kinect_meas_in_kinect;
+    //    KDL::Frame laser_in_root;
+    //    KDL::Frame kinect_in_root;
+    //    KDL::JntArray kinect_joint_data;
+    //    KDL::Jacobian laser_jacobian;
+    //    KDL::Jacobian kinect_jacobian;
+    //};
 
     /** Vector containing optimization data for each measurement */
-    std::vector<optimization_data> optimization_data_;
+    std::vector<OptimizationData> optimization_data_;
 
     /** Kinematic chain objects including forward kinematics and jacobian solvers */
     KinematicChain* laser_chain_;
@@ -87,6 +94,8 @@ private:
     /** Stores all relevant joint states */
     std::map<std::string, double> joint_states_;
 
+    /** Optimizer object */
+    Optimizer optimizer_;
 };
 
 #endif

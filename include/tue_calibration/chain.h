@@ -42,6 +42,8 @@ public:
     /** @brief Returns vector with joint names */
     std::vector<std::string> getJointNames() const;
 
+    /** @brief computes pose of frame */
+    KDL::Frame getFK(const KDL::JntArray& joint_array);
 
 private:
 

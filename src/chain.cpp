@@ -3,7 +3,7 @@
 #include <kdl_parser/kdl_parser.hpp>
 
 KinematicChain::KinematicChain(): num_joints_(0) {
-ROS_WARN("Constructing chain");
+
 }
 
 KinematicChain::KinematicChain(const std::string root_frame, const std::string tip_frame): num_joints_(0) {
@@ -18,11 +18,11 @@ KinematicChain::~KinematicChain() {
 }
 
 bool KinematicChain::init(const std::string root_frame, const std::string tip_frame) {
-ROS_WARN("Init chain with root %s and tip %s", root_frame.c_str(), tip_frame.c_str());
+
     root_frame_ = root_frame;
     tip_frame_  = tip_frame;
     num_joints_ = 0;
-ROS_WARN("Get URDF");
+
     /// Get URDF XML
     ros::NodeHandle nh;
     std::string urdf_xml, full_urdf_xml;
@@ -35,13 +35,13 @@ ROS_WARN("Get URDF");
         ROS_FATAL("Could not load the xml from parameter server: %s", urdf_xml.c_str());
         return false;
     }
-ROS_WARN("Load models");
+
     /// Load and Read Models
     if (!loadModel(result)) {
         ROS_FATAL("Could not load models!");
         return false;
     }
-ROS_WARN("Init solvers");
+
     /// Initialize solvers
     jac_solver_ = new KDL::ChainJntToJacSolver(chain_);
     fk_solver_  = new KDL::ChainFkSolverPos_recursive(chain_);
@@ -53,6 +53,17 @@ ROS_WARN("Init solvers");
 
 std::vector<std::string> KinematicChain::getJointNames() const {
     return joint_names_;
+}
+
+KDL::Frame KinematicChain::getFK(const KDL::JntArray& joint_array) {
+
+    q_ = joint_array;
+    KDL::Frame frame_out;
+    /// Assume we're talking about the last segment
+    int segment_nr = chain_.getNrOfSegments();
+    fk_solver_->JntToCart(joint_array, frame_out, segment_nr);
+    return frame_out;
+
 }
 
 bool KinematicChain::loadModel(const std::string xml) {

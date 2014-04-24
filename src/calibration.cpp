@@ -31,6 +31,14 @@ void Calibration::init() {
     laser_chain_ = new KinematicChain("base_link", "base_laser");
     kinect_chain_ = new KinematicChain("base_link", "top_kinect/openni_rgb_optical_frame");
 
+    ///// Test FK
+    //KDL::JntArray qtest; qtest.resize(0);
+    //KDL::Frame testfk = laser_chain_->getFK(qtest);
+    //ROS_INFO("Testfk laser = [%f, %f, %f]", testfk.p.x(), testfk.p.y(), testfk.p.z());
+
+    /// Initialize optimizer
+    optimizer_.init(laser_chain_, kinect_chain_);
+
 }
 
 void Calibration::jointStateCallback(const sensor_msgs::JointState::ConstPtr& msg) {
@@ -45,43 +53,69 @@ void Calibration::jointStateCallback(const sensor_msgs::JointState::ConstPtr& ms
 void Calibration::toggleCallback(const std_msgs::String::ConstPtr& msg) {
 
     std::string add_meas_str("add");
+    std::string optimize_str("opt");
     if (!msg->data.compare(add_meas_str)) {
-        ROS_INFO("Adding measurement");
-
-        /// Initialize opt data
-        optimization_data meas_data;
-
-        /// Get laser measurement
-        tue_calibration::getPose laser_srv;
-        if (laser_client_.call(laser_srv)) {
-            stampedPoseToKDLframe(laser_srv.response.pose, meas_data.laser_meas_in_laser);
-            ROS_INFO("Laser in laser = [%f, %f, %f]", meas_data.laser_meas_in_laser.p.x(), meas_data.laser_meas_in_laser.p.y(), meas_data.laser_meas_in_laser.p.z());
-        } else {
-            ROS_ERROR("Line detection failed, cancelling measurement");
-            return;
+        if (addMeasurement()) {
+            ROS_INFO("Measurement successfully added to optimization data");
         }
-
-        /// Get kinect measurement
-        tue_calibration::getPose kinect_srv;
-        if (kinect_client_.call(kinect_srv)) {
-            stampedPoseToKDLframe(kinect_srv.response.pose, meas_data.kinect_meas_in_kinect);
-            ROS_INFO("Kinect in kinect = [%f, %f, %f]", meas_data.kinect_meas_in_kinect.p.x(), meas_data.kinect_meas_in_kinect.p.y(), meas_data.kinect_meas_in_kinect.p.z());
-        } else {
-            ROS_ERROR("Checkerboard detection failed, cancelling measurement");
-            return;
+    } else if (!msg->data.compare(optimize_str)) {
+        if (calibrate()) {
+            ROS_INFO("Calibration succeeded");
         }
-
-        /// Get joint measurement
-        // Assume only Kinect is relevant
-        fillJointArray(kinect_chain_, meas_data.kinect_joint_data);
-
-        /// Append data
-        optimization_data_.push_back(meas_data);
-
     } else {
         ROS_WARN("Don't know what to do");
     }
 
+}
+
+bool Calibration::addMeasurement() {
+
+    ROS_INFO("Adding measurement");
+
+    /// Initialize opt data
+    OptimizationData meas_data;
+
+    /// Get laser measurement
+    tue_calibration::getPose laser_srv;
+    if (laser_client_.call(laser_srv)) {
+        stampedPoseToKDLframe(laser_srv.response.pose, meas_data.laser_meas_in_laser);
+        ROS_INFO("Laser in laser = [%f, %f, %f]", meas_data.laser_meas_in_laser.p.x(), meas_data.laser_meas_in_laser.p.y(), meas_data.laser_meas_in_laser.p.z());
+    } else {
+        ROS_ERROR("Line detection failed, cancelling measurement");
+        return false;
+    }
+
+    /// Get kinect measurement
+    tue_calibration::getPose kinect_srv;
+    if (kinect_client_.call(kinect_srv)) {
+        stampedPoseToKDLframe(kinect_srv.response.pose, meas_data.kinect_meas_in_kinect);
+        ROS_INFO("Kinect in kinect = [%f, %f, %f]", meas_data.kinect_meas_in_kinect.p.x(), meas_data.kinect_meas_in_kinect.p.y(), meas_data.kinect_meas_in_kinect.p.z());
+    } else {
+        ROS_ERROR("Checkerboard detection failed, cancelling measurement");
+        return false;
+    }
+
+    /// Get joint measurement
+    // Assume only Kinect is relevant
+    fillJointArray(kinect_chain_, meas_data.kinect_joint_data);
+
+    /// Append data
+    optimization_data_.push_back(meas_data);
+
+    return true;
+
+}
+
+bool Calibration::calibrate() {
+
+    if (optimizer_.optimize(optimization_data_)) {
+        ROS_INFO("Optimization finished");
+        return true;
+    } else {
+        ROS_ERROR("Optimization failed");
+    }
+
+    return true;
 }
 
 void Calibration::stampedPoseToKDLframe(const geometry_msgs::PoseStamped& pose, KDL::Frame& frame) {
