@@ -10,6 +10,10 @@ Calibration::Calibration() {
 }
 
 Calibration::~Calibration() {
+    delete laser_chain_;
+    delete kinect_chain_;
+    laser_chain_ = NULL;
+    kinect_chain_ = NULL;
 
 }
 
@@ -20,8 +24,22 @@ void Calibration::init() {
     laser_client_  = nh.serviceClient<tue_calibration::getPose>("/laser_line_detector/toggle_line_detector");
     kinect_client_ = nh.serviceClient<tue_calibration::getPose>("/kinect_checkerboard_detector/toggle_checkerboard_detector");
 
+    joint_state_sub_ = nh.subscribe("/amigo/joint_states", 1, &Calibration::jointStateCallback, this);
     toggle_sub_ = nh.subscribe("toggle_calibration", 1, &Calibration::toggleCallback, this);
 
+    /// Kinematic chain objects with solvers
+    laser_chain_ = new KinematicChain("base_link", "base_laser");
+    kinect_chain_ = new KinematicChain("base_link", "top_kinect/openni_rgb_optical_frame");
+
+}
+
+void Calibration::jointStateCallback(const sensor_msgs::JointState::ConstPtr& msg) {
+
+    // ToDo: do smarter. Store all joints?
+    /// Loop over message
+    for (unsigned int i = 0; i < msg->name.size(); i++) {
+        joint_states_[msg->name[i]] = msg->position[i];
+    }
 }
 
 void Calibration::toggleCallback(const std_msgs::String::ConstPtr& msg) {
@@ -54,7 +72,8 @@ void Calibration::toggleCallback(const std_msgs::String::ConstPtr& msg) {
         }
 
         /// Get joint measurement
-        // Push desired values in joint array
+        // Assume only Kinect is relevant
+        fillJointArray(kinect_chain_, meas_data.kinect_joint_data);
 
         /// Append data
         optimization_data_.push_back(meas_data);
@@ -78,4 +97,27 @@ void Calibration::stampedPoseToKDLframe(const geometry_msgs::PoseStamped& pose, 
                                         pose.pose.orientation.z,
                                         pose.pose.orientation.w);
 
+}
+
+void Calibration::fillJointArray(const KinematicChain* chain, KDL::JntArray& joint_array) {
+
+    /// Get joints
+    std::vector<std::string> chain_joints = chain->getJointNames();
+
+    /// Resize joint array
+    joint_array.resize(chain_joints.size());
+
+    /// Loop over joint states
+    for (std::map<std::string, double>::iterator iter = joint_states_.begin(); iter != joint_states_.end(); iter++) {
+        std::string current_joint = iter->first;
+        /// Loop over relevant joints
+        for (unsigned int j = 0; j < chain_joints.size(); j++) {
+            //ROS_INFO("Current joint = %s, desired joint = %s", current_joint.c_str(), chain_joints[j].c_str());
+            /// Check
+            if (current_joint == chain_joints[j]) {
+                joint_array(j) = iter->second;
+                ROS_INFO("Joint %s = %f", current_joint.c_str(), iter->second);
+            }
+        }
+    }
 }

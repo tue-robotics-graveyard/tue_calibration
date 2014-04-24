@@ -46,6 +46,7 @@ find_package(OpenCV)
 target_link_libraries(kinect_detector_node ${OpenCV_LIBRARIES})
 
 # Calibration node
-rosbuild_add_library(calibration src/calibration.cpp)
+rosbuild_add_library(calibration    src/calibration.cpp
+                                    src/chain.cpp)
 rosbuild_add_executable(calibration_node src/calibration_node.cpp ${HEADER_FILES})
 target_link_libraries(calibration_node calibration)
