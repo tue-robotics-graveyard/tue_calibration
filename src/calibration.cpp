@@ -39,7 +39,7 @@ void Calibration::toggleCallback(const std_msgs::String::ConstPtr& msg) {
             stampedPoseToKDLframe(laser_srv.response.pose, meas_data.laser_meas_in_laser);
             ROS_INFO("Laser in laser = [%f, %f, %f]", meas_data.laser_meas_in_laser.p.x(), meas_data.laser_meas_in_laser.p.y(), meas_data.laser_meas_in_laser.p.z());
         } else {
-            ROS_ERROR("Failed to call laser service, cancelling measurement");
+            ROS_ERROR("Line detection failed, cancelling measurement");
             return;
         }
 
@@ -49,11 +49,12 @@ void Calibration::toggleCallback(const std_msgs::String::ConstPtr& msg) {
             stampedPoseToKDLframe(kinect_srv.response.pose, meas_data.kinect_meas_in_kinect);
             ROS_INFO("Kinect in kinect = [%f, %f, %f]", meas_data.kinect_meas_in_kinect.p.x(), meas_data.kinect_meas_in_kinect.p.y(), meas_data.kinect_meas_in_kinect.p.z());
         } else {
-            ROS_ERROR("Failed to call kinect service, cancelling measurement");
+            ROS_ERROR("Checkerboard detection failed, cancelling measurement");
             return;
         }
 
         /// Get joint measurement
+        // Push desired values in joint array
 
         /// Append data
         optimization_data_.push_back(meas_data);

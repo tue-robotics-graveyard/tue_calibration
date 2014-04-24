@@ -136,8 +136,13 @@ bool LineDetector::determineLine(double &x, double &y, double &phi) {
     //ROS_INFO("Index = %i of %i, angle = %f, range = %f",(int)index,(int)0,angle, msg->ranges[index+1]);
     //ROS_INFO("xright = %f, yright = %f", xright, yright);
 
-    x = (xleft + xright)/2;
-    y = (yleft + yright)/2;
+    //x = (xleft + xright)/2;
+    //y = (yleft + yright)/2;
+    //ToDo: don't hardcode ratios:
+    // Total width of wooden board is 0.848 m. Distance from left edge to corner measured by Kinect is 0.758 m, from right edge 0.900 m
+    x = xleft + 0.758/0.848 * (xright-xleft);
+    y = yleft + 0.758/0.848 * (yright-yleft);
+
     phi = atan2( (-xleft+xright), (yleft-yright) );
     ROS_INFO("[x, y, phi] = [%f\t%f\t%f]", x, y, phi);
     publishMarker(x,y,0.0,phi,msg_->header.frame_id);
@@ -174,9 +179,9 @@ void LineDetector::publishMarker(const double x, const double y, const double z,
         marker.type = 0;
         marker.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0,0.0,yaw);
     }
-    marker.scale.x = 0.1;
-    marker.scale.y = 0.1;
-    marker.scale.z = 0.1;
+    marker.scale.x = 0.2;
+    marker.scale.y = 0.3;
+    marker.scale.z = 0.5;
     marker.color.r = 1.0;
     marker.color.g = 0.0;
     marker.color.b = 0.0;
