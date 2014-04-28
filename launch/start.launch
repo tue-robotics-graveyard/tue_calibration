@@ -3,7 +3,7 @@
 <launch>
 	
 	<!-- load robot -->
-    <param name="/amigo/robot_description" textfile="$(find amigo_description)/urdf/amigo.urdf" />
+    <param name="/amigo/robot_description" textfile="$(find tue_calibration)/urdf/amigo.urdf" />
 	
 	<!-- Laser detector -->
 	<node pkg="tue_calibration" type="line_detector_node" name="laser_line_detector" respawn="false" output="screen">

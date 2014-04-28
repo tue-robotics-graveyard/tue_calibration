@@ -66,6 +66,17 @@ KDL::Frame KinematicChain::getFK(const KDL::JntArray& joint_array) {
 
 }
 
+int KinematicChain::getJacobian(const KDL::JntArray& joint_array, KDL::Jacobian& jacobian) {
+
+    jacobian.resize(chain_.getNrOfJoints());
+    return jac_solver_->JntToJac(joint_array, jacobian);
+
+}
+
+JointType KinematicChain::getJointType(const unsigned int joint_index) const {
+    return joint_types_[joint_index];
+}
+
 bool KinematicChain::loadModel(const std::string xml) {
     urdf::Model robot_model;
     KDL::Tree tree;
@@ -134,6 +145,7 @@ bool KinematicChain::readJoints(urdf::Model &robot_model) {
     joint_min_.resize(num_joints_);
     joint_max_.resize(num_joints_);
     joint_names_.resize(num_joints_);
+    joint_types_.resize(num_joints_);
     q_.resize(num_joints_);
 
     link = robot_model.getLink(tip_frame_);
@@ -156,6 +168,13 @@ bool KinematicChain::readJoints(urdf::Model &robot_model) {
             joint_min_.data[index] = lower;
             joint_max_.data[index] = upper;
             joint_names_[index] = joint->name;
+
+            /// Distinguish measured joints from optimization joints
+            if (strncmp(joint->name.c_str(), "opt", 3) == 0) {
+                joint_types_[index] = optimize;
+            } else {
+                joint_types_[index] = measured;
+            }
 
             q_(index) =  0;
             i++;

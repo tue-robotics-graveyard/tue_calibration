@@ -102,8 +102,19 @@ bool toggleCallback(tue_calibration::getPose::Request   &req,
 
         //Eigen::Quaternionf orientation2(orientation*orientation);
         publishMarker(resp.pose);
-        //cv::imshow("Image", img_bridge->image);
-        //cv::waitKey(0);
+        std::cout << "Type 0 for false, 1 for correct detection" << std::endl;
+        cv::imshow("Image", img_bridge->image);
+        char feedback = cv::waitKey();
+        ROS_INFO("Feedback = %c", feedback);
+        if (feedback == '1') {
+            ROS_DEBUG("Checkerboard accepted");
+        } else if (feedback == '0') {
+            ROS_WARN("Checkerboard rejected, canceling measurement");
+            return false;
+        } else {
+            ROS_ERROR("Feedback not defined, canceling measurement");
+            return false;
+        }
     } else {
         ROS_ERROR("No checkerboard detected");
         return false;

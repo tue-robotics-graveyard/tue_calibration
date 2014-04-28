@@ -95,6 +95,9 @@ bool Calibration::addMeasurement() {
         return false;
     }
 
+    /// Offset
+    meas_data.offset = KDL::Frame(KDL::Vector(0.0, 0.0, -(0.24-0.1015)));
+
     /// Get joint measurement
     // Assume only Kinect is relevant
     fillJointArray(kinect_chain_, meas_data.kinect_joint_data);
@@ -140,6 +143,9 @@ void Calibration::fillJointArray(const KinematicChain* chain, KDL::JntArray& joi
 
     /// Resize joint array
     joint_array.resize(chain_joints.size());
+
+    /// Initialize all joints to zero
+    joint_array.data.setZero();
 
     /// Loop over joint states
     for (std::map<std::string, double>::iterator iter = joint_states_.begin(); iter != joint_states_.end(); iter++) {

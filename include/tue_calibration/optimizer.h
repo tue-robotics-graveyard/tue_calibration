@@ -42,11 +42,13 @@ private:
 
     // ToDo: no member variables below?
     /** Vector containing the stacked errors */
-    Eigen::VectorXf error_vector_;
+    Eigen::VectorXd error_vector_;
 
     /** Total Jacobian matrix */
     Eigen::MatrixXd total_jacobian_;
 
+    /** Diagonal of the weighting matrix */
+    Eigen::VectorXd weighting_matrix_;
 };
 
 #endif

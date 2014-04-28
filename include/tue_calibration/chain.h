@@ -17,6 +17,9 @@
 
 #include <urdf/model.h>
 
+/** Enum to distinguish measured joints from optimization joints */
+enum JointType{measured, optimize};
+
 class KinematicChain {
 
 public:
@@ -42,8 +45,20 @@ public:
     /** @brief Returns vector with joint names */
     std::vector<std::string> getJointNames() const;
 
-    /** @brief computes pose of frame */
+    /** @brief computes pose of frame
+     *  @param joint_array KDL::JntArray with joint values */
     KDL::Frame getFK(const KDL::JntArray& joint_array);
+
+    /** @brief computes the Jacobian for the given joint array
+     *  @param joint_array KDL::JntArray with joint values
+     *  @param jacobian Jacobian matrix to be computed
+     *  @return returns the output of the KDL JntToJac function */
+    int getJacobian(const KDL::JntArray& joint_array, KDL::Jacobian& jacobian);
+
+    /** @brief Returns the joint type of joint i
+     *  @param joint_index: joint index
+     *  @return Joint Type */
+    JointType getJointType(const unsigned int joint_index) const;
 
 private:
 
@@ -80,6 +95,9 @@ private:
 
     /** Jacobian solver */
     KDL::ChainJntToJacSolver* jac_solver_;
+
+    /** Vector containing joint types */
+    std::vector<JointType> joint_types_;
 
 };
 

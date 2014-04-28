@@ -140,6 +140,7 @@ bool LineDetector::determineLine(double &x, double &y, double &phi) {
     //y = (yleft + yright)/2;
     //ToDo: don't hardcode ratios:
     // Total width of wooden board is 0.848 m. Distance from left edge to corner measured by Kinect is 0.758 m, from right edge 0.900 m
+    // Alternative would be to put this in the 'offset' field of the calibration data struct
     x = xleft + 0.758/0.848 * (xright-xleft);
     y = yleft + 0.758/0.848 * (yright-yleft);
 
