@@ -80,7 +80,7 @@ bool LineDetector::determineLine(double &x, double &y, double &phi) {
         yleft = y0;
     }
 
-    publishMarker(xleft,yleft,0,10,msg_->header.frame_id);
+    //publishMarker(xleft,yleft,0,10,msg_->header.frame_id);
     //ROS_INFO("Index = %i of %i, angle = %f, range = %f",(int)index,(int)msg->ranges.size(),angle, msg->ranges[index-1]);
     //ROS_INFO("xleft = %f, yleft = %f", xleft, yleft);
 
@@ -131,7 +131,7 @@ bool LineDetector::determineLine(double &x, double &y, double &phi) {
         yright = y0;
     }
 
-    publishMarker(xright,yright,0,10,msg_->header.frame_id);
+    //publishMarker(xright,yright,0,10,msg_->header.frame_id);
     //ToDo: add more robustness (range must be between 1 and 2 meters?
     //ROS_INFO("Index = %i of %i, angle = %f, range = %f",(int)index,(int)0,angle, msg->ranges[index+1]);
     //ROS_INFO("xright = %f, yright = %f", xright, yright);

@@ -73,17 +73,6 @@ private:
     /** Topic to toggle measurements */
     ros::Subscriber toggle_sub_;
 
-    ///** Struct containing the measurement information that is required for the optimization */
-    //struct OptimizationData {
-    //    KDL::Frame laser_meas_in_laser;
-    //    KDL::Frame kinect_meas_in_kinect;
-    //    KDL::Frame laser_in_root;
-    //    KDL::Frame kinect_in_root;
-    //    KDL::JntArray kinect_joint_data;
-    //    KDL::Jacobian laser_jacobian;
-    //    KDL::Jacobian kinect_jacobian;
-    //};
-
     /** Vector containing optimization data for each measurement */
     std::vector<OptimizationData> optimization_data_;
 
@@ -91,11 +80,18 @@ private:
     KinematicChain* laser_chain_;
     KinematicChain* kinect_chain_;
 
+    /** Offsets to compensate for physical offset between measurement points (e.g., laser measures at fixed height, Kinect at lower right corner) */
+    KDL::Frame laser_offset_;
+    KDL::Frame kinect_offset_;
+
     /** Stores all relevant joint states */
     std::map<std::string, double> joint_states_;
 
     /** Optimizer object */
     Optimizer optimizer_;
+
+    /** Marker publisher */
+    MarkerPublisher marker_pub_;
 };
 
 #endif

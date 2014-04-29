@@ -28,28 +28,30 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
     // Resize Jacobian
     // Fill weighting matrices
     // Fill joint array (Eigen?) with measured data
+    /// Print joint names
+    std::vector<std::string> joint_names = kinect_chain_->getJointNames();
+    for (unsigned int i = 0; i < joint_names.size(); i++) {
+        std::cout << "Joint " << i << " = " << joint_names[i] << std::endl;
+    }
 
     /// Number of measurements
     unsigned int n_meas = data.size();
     /// Number of measured joints in the kinect chain:
     unsigned int n_kinect_joints = kinect_chain_->getJointNames().size();
-    /// Number of optimization variables in kinect chain:
-    // ToDo: don't hardcode
-    unsigned int n_kinect_opts = 0;
 
     /// Gain vector
     // ToDo: don't hardcode gain
-    Eigen::VectorXd gain; gain.resize(n_kinect_joints+n_kinect_opts); for (unsigned int i = 0; i < gain.rows(); i++) gain(i) = 1;
+    Eigen::VectorXd gain; gain.resize(n_kinect_joints); for (unsigned int i = 0; i < gain.rows(); i++) gain(i) = 1;
 
     /// Resize variables
     error_vector_.resize(n_meas*num_dofs);
     error_vector_.setZero();
 
-    total_jacobian_.resize(n_meas*num_dofs, n_kinect_joints+n_kinect_opts);
+    total_jacobian_.resize(n_meas*num_dofs, n_kinect_joints);
     total_jacobian_.setZero();
 
     // ToDo: modify???
-    weighting_matrix_.resize(n_kinect_joints+n_kinect_opts);
+    weighting_matrix_.resize(n_kinect_joints);
     for (unsigned int i = 0; i < weighting_matrix_.rows(); i++) {
         weighting_matrix_(i) = double(kinect_chain_->getJointType(i));
     }
@@ -68,7 +70,7 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
 
     double norm = 1.0;
     unsigned int iter = 0;
-    unsigned int max_iter = 100;
+    unsigned int max_iter = 10;
     /// While norm too large && iter < max_iter:
     while (norm > 0.001 && iter < max_iter) {
 
@@ -77,28 +79,26 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
 
             /// Compute kinect_meas in root
             KDL::Frame kinect_pose = kinect_chain_->getFK(q_kinect);
+            std::cout << "Kinect pose in root = " << kinect_pose.p.x() << ", "
+                      << kinect_pose.p.y() << ", "
+                      << kinect_pose.p.z() << std::endl;
+
             KDL::Frame kinect_meas_in_root = kinect_pose * data[i].kinect_meas_in_kinect;
-            //std::cout << "Kinect measurement in root = " << kinect_meas_in_root.p.x() << ", "
-            //          << kinect_meas_in_root.p.y() << ", "
-            //          << kinect_meas_in_root.p.z() << std::endl;
+            std::cout << "Kinect measurement in root = " << kinect_meas_in_root.p.x() << ", "
+                      << kinect_meas_in_root.p.y() << ", "
+                      << kinect_meas_in_root.p.z() << std::endl;
 
             /// Compute laser meas in root
             KDL::Frame laser_pose = laser_chain_->getFK(q_laser);
             KDL::Frame laser_meas_in_root = laser_pose * data[i].laser_meas_in_laser;
-            //std::cout << "Laser measurement in root = " << laser_meas_in_root.p.x() << ", "
-            //          << laser_meas_in_root.p.y() << ", "
-            //          << laser_meas_in_root.p.z() << std::endl;
+            std::cout << "Laser measurement in root = " << laser_meas_in_root.p.x() << ", "
+                      << laser_meas_in_root.p.y() << ", "
+                      << laser_meas_in_root.p.z() << std::endl;
 
-            /// Compute error: include offset
-            KDL::Frame laser_meas_in_root_w_offset = laser_meas_in_root*data[i].offset;
-            //std::cout << "Laser measurement with offset = " << laser_meas_in_root_w_offset.p.x() << ", "
-            //          << laser_meas_in_root_w_offset.p.y() << ", "
-            //          << laser_meas_in_root_w_offset.p.z() << std::endl;
-
-            KDL::Twist error = KDL::diff(kinect_meas_in_root, laser_meas_in_root_w_offset);
-            //std::cout << "Error = " << error.vel.x() << ", "
-            //          << error.vel.y() << ", "
-            //          << error.vel.z() << ", norm^2 = " << error.vel.x()*error.vel.x() + error.vel.y()*error.vel.y() + error.vel.z()*error.vel.z() <<  std::endl;
+            KDL::Twist error = KDL::diff(kinect_meas_in_root, laser_meas_in_root);
+            std::cout << "Error = " << error.vel.x() << ", "
+                      << error.vel.y() << ", "
+                      << error.vel.z() << ", norm^2 = " << error.vel.x()*error.vel.x() + error.vel.y()*error.vel.y() + error.vel.z()*error.vel.z() <<  std::endl;
 
             /// Put error in vector
             if (num_dofs == 3) {
@@ -161,11 +161,14 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
 
         ///  Add Delta q to q current
         for (unsigned int i = 0; i < delta_q.rows(); i++) {
-            //std::cout << "Joint (" << i << "), old = " << q_kinect(i) << ", delta = " << delta_q(i) << ", new = " << q_kinect(i)+delta_q(i) << std::endl;
+            if (weighting_matrix_(i) == 1.0) {
+                std::cout << joint_names[i] << ": old = " << q_kinect(i) << ", delta = " << delta_q(i) << ", new = " << q_kinect(i)+delta_q(i) << std::endl;
+            }
             q_kinect(i) += delta_q(i);
         }
 
         norm = error_vector_.norm();
+        std::cout << "Iteration: " << iter << ", norm: " << norm << std::endl;
         ++iter;
 
     }

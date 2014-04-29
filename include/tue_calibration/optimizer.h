@@ -9,6 +9,7 @@
 
 #include "tue_calibration/chain.h"
 #include "tue_calibration/optimization_data.h"
+#include "tue_calibration/marker_publisher.h"
 
 class Optimizer {
 
@@ -49,6 +50,9 @@ private:
 
     /** Diagonal of the weighting matrix */
     Eigen::VectorXd weighting_matrix_;
+
+    /** Marker publisher */
+    MarkerPublisher marker_pub_;
 };
 
 #endif

@@ -27,7 +27,7 @@ bool KinematicChain::init(const std::string root_frame, const std::string tip_fr
     ros::NodeHandle nh;
     std::string urdf_xml, full_urdf_xml;
     // ToDo: don't hardcode
-    nh.param("urdf_xml",urdf_xml,std::string("/amigo/robot_description"));
+    nh.param("urdf_xml",urdf_xml,std::string("/amigo/robot_opt_description"));
     nh.searchParam(urdf_xml,full_urdf_xml);
     ROS_DEBUG("Reading xml file from parameter server");
     std::string result;
@@ -56,6 +56,13 @@ std::vector<std::string> KinematicChain::getJointNames() const {
 }
 
 KDL::Frame KinematicChain::getFK(const KDL::JntArray& joint_array) {
+
+    /// Check length of joint array
+    if (joint_array.data.rows() != chain_.getNrOfJoints()) {
+        ROS_ERROR("Nr input joints = %i while the chain has %i", joint_array.rows(), chain_.getNrOfJoints());
+        KDL::Frame frame_out;
+        return frame_out;
+    }
 
     q_ = joint_array;
     KDL::Frame frame_out;

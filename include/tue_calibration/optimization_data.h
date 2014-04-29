@@ -16,7 +16,6 @@ struct OptimizationData {
 	KDL::JntArray kinect_joint_data;
 	KDL::Jacobian laser_jacobian;
 	KDL::Jacobian kinect_jacobian;
-    KDL::Frame offset; /// Physical offset between what the Kinect and the laser detect
 };
 
 #endif

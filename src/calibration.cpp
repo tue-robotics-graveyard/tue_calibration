@@ -24,7 +24,7 @@ void Calibration::init() {
     laser_client_  = nh.serviceClient<tue_calibration::getPose>("/laser_line_detector/toggle_line_detector");
     kinect_client_ = nh.serviceClient<tue_calibration::getPose>("/kinect_checkerboard_detector/toggle_checkerboard_detector");
 
-    joint_state_sub_ = nh.subscribe("/amigo/joint_states", 1, &Calibration::jointStateCallback, this);
+    joint_state_sub_ = nh.subscribe("/amigo/joint_states", 5, &Calibration::jointStateCallback, this);
     toggle_sub_ = nh.subscribe("toggle_calibration", 1, &Calibration::toggleCallback, this);
 
     /// Kinematic chain objects with solvers
@@ -36,6 +36,23 @@ void Calibration::init() {
     //KDL::Frame testfk = laser_chain_->getFK(qtest);
     //ROS_INFO("Testfk laser = [%f, %f, %f]", testfk.p.x(), testfk.p.y(), testfk.p.z());
 
+    //KDL::JntArray qtest; qtest.resize(3);
+    //qtest(0) = 0.400005;
+    //qtest(1) = 0.0;
+    //qtest(1) = -0.005118;
+    //qtest(2) = 0.2456768;
+    //qtest(4) = 0.0;
+    //qtest(5) = 0.0;
+    //std::vector<std::string> joint_names = kinect_chain_->getJointNames();
+    //for (unsigned int i = 0; i < joint_names.size(); ++i) std::cout << joint_names[i] << " = " << qtest(i) << std::endl;
+    //KDL::Frame testfk = kinect_chain_->getFK(qtest);
+    //ROS_INFO("Testfk kinect = [%f, %f, %f]", testfk.p.x(), testfk.p.y(), testfk.p.z());
+
+
+    /// Offsets
+    kinect_offset_ = KDL::Frame();
+    laser_offset_  = KDL::Frame(KDL::Vector(0.0, 0.0, 0.1015-0.24));
+
     /// Initialize optimizer
     optimizer_.init(laser_chain_, kinect_chain_);
 
@@ -46,6 +63,7 @@ void Calibration::jointStateCallback(const sensor_msgs::JointState::ConstPtr& ms
     // ToDo: do smarter. Store all joints?
     /// Loop over message
     for (unsigned int i = 0; i < msg->name.size(); i++) {
+        //ROS_INFO("Storing %s: %f", msg->name[i].c_str(), msg->position[i]);
         joint_states_[msg->name[i]] = msg->position[i];
     }
 }
@@ -79,6 +97,13 @@ bool Calibration::addMeasurement() {
     tue_calibration::getPose laser_srv;
     if (laser_client_.call(laser_srv)) {
         stampedPoseToKDLframe(laser_srv.response.pose, meas_data.laser_meas_in_laser);
+
+        /// Compensate offset
+        meas_data.laser_meas_in_laser = meas_data.laser_meas_in_laser * laser_offset_;
+
+        /// Publish result
+        marker_pub_.publishSphere(meas_data.laser_meas_in_laser.p.x(), meas_data.laser_meas_in_laser.p.y(), meas_data.laser_meas_in_laser.p.z(), laser_srv.response.pose.header.frame_id,
+                                  1.0, 1.0, 0.0, 0.05);
         ROS_INFO("Laser in laser = [%f, %f, %f]", meas_data.laser_meas_in_laser.p.x(), meas_data.laser_meas_in_laser.p.y(), meas_data.laser_meas_in_laser.p.z());
     } else {
         ROS_ERROR("Line detection failed, cancelling measurement");
@@ -88,15 +113,23 @@ bool Calibration::addMeasurement() {
     /// Get kinect measurement
     tue_calibration::getPose kinect_srv;
     if (kinect_client_.call(kinect_srv)) {
+
         stampedPoseToKDLframe(kinect_srv.response.pose, meas_data.kinect_meas_in_kinect);
+
+        /// Compensate offset
+        meas_data.kinect_meas_in_kinect = meas_data.kinect_meas_in_kinect * kinect_offset_;
+        std::cout << "x_ros = " << kinect_srv.response.pose.pose.position.x << ", x_kdl = " << meas_data.kinect_meas_in_kinect.p.x() << std::endl;
+        std::cout << "y_ros = " << kinect_srv.response.pose.pose.position.y << ", y_kdl = " << meas_data.kinect_meas_in_kinect.p.y() << std::endl;
+        std::cout << "z_ros = " << kinect_srv.response.pose.pose.position.z << ", z_kdl = " << meas_data.kinect_meas_in_kinect.p.z() << std::endl;
+
+        /// Publish result
+        marker_pub_.publishSphere(meas_data.kinect_meas_in_kinect.p.x(), meas_data.kinect_meas_in_kinect.p.y(), meas_data.kinect_meas_in_kinect.p.z(), kinect_srv.response.pose.header.frame_id,
+                                  0.0, 0.0, 1.0, 0.05);
         ROS_INFO("Kinect in kinect = [%f, %f, %f]", meas_data.kinect_meas_in_kinect.p.x(), meas_data.kinect_meas_in_kinect.p.y(), meas_data.kinect_meas_in_kinect.p.z());
     } else {
         ROS_ERROR("Checkerboard detection failed, cancelling measurement");
         return false;
     }
-
-    /// Offset
-    meas_data.offset = KDL::Frame(KDL::Vector(0.0, 0.0, -(0.24-0.1015)));
 
     /// Get joint measurement
     // Assume only Kinect is relevant
@@ -146,7 +179,7 @@ void Calibration::fillJointArray(const KinematicChain* chain, KDL::JntArray& joi
 
     /// Initialize all joints to zero
     joint_array.data.setZero();
-
+    ROS_WARN("Filling joint array");
     /// Loop over joint states
     for (std::map<std::string, double>::iterator iter = joint_states_.begin(); iter != joint_states_.end(); iter++) {
         std::string current_joint = iter->first;
@@ -160,4 +193,5 @@ void Calibration::fillJointArray(const KinematicChain* chain, KDL::JntArray& joi
             }
         }
     }
+    ROS_WARN("Filled joint array");
 }
