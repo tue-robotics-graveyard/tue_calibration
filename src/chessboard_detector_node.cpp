@@ -36,7 +36,7 @@ void publishMarker(const geometry_msgs::PoseStamped& pose) {
 }
 
 void cameraCallback(const sensor_msgs::ImageConstPtr& image_msg, const sensor_msgs::CameraInfoConstPtr& info_msg) {
-    ROS_INFO("Image received");
+    //ROS_INFO("Image received");
     image_msg_ = image_msg;
     info_msg_  = info_msg;
 }
@@ -102,6 +102,7 @@ bool toggleCallback(tue_calibration::getPose::Request   &req,
 
         //Eigen::Quaternionf orientation2(orientation*orientation);
         publishMarker(resp.pose);
+        return true;
         std::cout << "Type 0 for false, 1 for correct detection" << std::endl;
         cv::imshow("Image", img_bridge->image);
         char feedback = cv::waitKey();
