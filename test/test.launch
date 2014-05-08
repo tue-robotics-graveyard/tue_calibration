@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<launch>
+	
+	<!-- load robot -->
+    <param name="/amigo/robot_opt_description" textfile="$(find tue_calibration)/test/amigo24127opt.urdf" />
+    <param name="/amigo/robot_description" textfile="$(find tue_calibration)/test/amigo24127mod.urdf" />
+    
+    <arg name="robot_name" default="amigo"/>
+
+    <!-- Robot state publisher -->
+    <node pkg="robot_state_publisher" type="state_publisher" name="$(arg robot_name)_state_publisher" ns="$(arg robot_name)">
+        <param name="publish_frequency" type="double" value="50.0" />
+        <param name="tf_prefix" type="string" value="$(arg robot_name)" />
+        <remap from="joint_states" to="/$(arg robot_name)/joint_states"/>
+    </node>
+		
+	<!-- Laser detector -->
+<!--
+	<node pkg="tue_calibration" type="line_detector_node" name="laser_line_detector" respawn="false" output="screen">
+		<remap from="/scan" to="/amigo/base_front_laser"/>
+	</node>
+-->	
+	<!-- Kinect detector -->
+<!--
+	<node pkg="tue_calibration" type="kinect_detector_node" name="kinect_checkerboard_detector" respawn="false" output="screen"></node>
+-->	
+	
+	<!-- The laser detector and kinect detector are emulated by the testnode -->
+	
+	<!-- Calibration node -->
+	<node pkg="tue_calibration" type="calibration_node" name="calibration_node" respawn="false" output="screen"></node>
+	
+</launch>
