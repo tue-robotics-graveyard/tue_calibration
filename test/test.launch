@@ -14,6 +14,9 @@
         <param name="tf_prefix" type="string" value="$(arg robot_name)" />
         <remap from="joint_states" to="/$(arg robot_name)/joint_states"/>
     </node>
+    
+    <!-- tf server -->
+    <node pkg="tf_server" type="tf_server" name="tf_server"/>
 		
 	<!-- Laser detector -->
 <!--

@@ -522,6 +522,22 @@
     <child link="torso_lasertop"/>
   </joint>
   <!--========BUILD HEAD======-->
+  <link name="opt_head_mount"> <!-- Horizontal, x-direction (base_link) -->
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.001"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+  <joint name="opt_head_mount_joint" type="prismatic">
+    <parent link="torso"/>
+    <child link="opt_head_mount"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+    <dynamics damping="3" friction="0.0"/>
+    <limit effort="1000" lower="-0.25" upper="0.25" velocity="1.0"/>
+  </joint>
+  
   <author>Kris van Tienhoven</author>
   <license>BSD</license>
   <review notes="" status="unreviewed"/>
@@ -533,7 +549,7 @@
     </inertial>
   </link>
   <joint name="head_mount_joint" type="fixed">
-    <parent link="torso"/>
+    <parent link="opt_head_mount"/>
     <child link="head_mount"/>
     <axis xyz="0 0 1"/>
     <origin rpy="  0.0 0.0 0.0" xyz="0.097 0.0 0.0"/>
@@ -632,10 +648,27 @@
     <limit effort="13.4" lower="-0.5" upper="0.88" velocity="1.0"/>
   </joint>
   <!--========BUILD KINECT======-->
+  <link name="opt_neck_lateral"> <!-- y-direction (base_link) -->
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.001"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+  
+  <joint name="opt_neck_lateral_joint" type="prismatic">
+    <parent link="head"/>
+    <child link="opt_neck_lateral"/>
+    <axis xyz="0 1 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+    <dynamics damping="3" friction="0.0"/>
+    <limit effort="1000" lower="-0.25" upper="0.25" velocity="1.0"/>
+  </joint>
+  
   <joint name="top_kinect/base_kinect_joint" type="fixed">
     <origin rpy="0.02 0.05 0.015" xyz="0.07 0.05 0.10"/>
     <!-- THESE VALUES ARE ROUGH ESTIMATES!! -->
-    <parent link="head"/>
+    <parent link="opt_neck_lateral"/>
     <child link="top_kinect/openni_camera"/>
   </joint>
   <link name="top_kinect/openni_camera">

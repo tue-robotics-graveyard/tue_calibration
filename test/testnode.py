@@ -4,13 +4,15 @@ import rospy
 import sys
 import random
 import tf
+import tf_server
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import PoseStamped
 from tue_calibration.srv import getPose
 
 rospy.init_node('test_calibration_tool')
 laser_pose = PoseStamped()
-tf_listener = tf.TransformListener()
+#tf_listener = tf.TransformListener()
+tf_listener = tf_server.TFClient()
 
 def getLaserPose(req):
 	laser_pose.header.stamp = rospy.Time.now()
@@ -27,8 +29,10 @@ def getLaserPose(req):
 	
 def getKinectPose(req):
 	tmp_laser_pose = laser_pose
-	tmp_laser_pose = rospy.Time.now()
-	kinect_pose = tf_listener.transformPose(tmp_laser_pose, "/amigo/top_kinect/openni_rgb_optical_frame")
+	# Correct for z-offset
+	laser_pose.pose.position.z = laser_pose.pose.position.z - (0.24-0.1015)
+	tmp_laser_pose.header.stamp = rospy.Time.now()
+	kinect_pose = tf_listener.transformPose("/amigo/top_kinect/openni_rgb_optical_frame", tmp_laser_pose)
 	rospy.loginfo("Kinect pose = {0}".format(kinect_pose))
 	return kinect_pose
 
@@ -38,8 +42,8 @@ if __name__ == '__main__':
 	
 	# Publishers and services
 	jointstate_pub = rospy.Publisher('/amigo/joint_states', JointState)
-	laser_service = rospy.Service('/laser_line_detectro/toggle_line_detector', getPose, getLaserPose)
-	kinect_service = rospy.Service('/checkerboard_detectro/toggle_checkerboard_detector', getPose, getKinectPose)
+	laser_service = rospy.Service('/laser_line_detector/toggle_line_detector', getPose, getLaserPose)
+	kinect_service = rospy.Service('/kinect_checkerboard_detector/toggle_checkerboard_detector', getPose, getKinectPose)
 	
 	# Fill jointstate topic
 	jointstate_msg = JointState()
