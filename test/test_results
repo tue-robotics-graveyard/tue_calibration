@@ -1,0 +1,72 @@
+Only difference: head mount: should go to 0.0426
+
+Joints:
+1 Measurement:
+0.4 0.3 0.3
+
+With additional yaw error means (if applicable):
+neck_tilt_joint: rpy = 0 0 0.01 instead of 0 0 0
+
+
+No additional yaw error:
+Joint opt_head_mount_joint
+Joint opt_head_mount_vertical_joint
+0.0426
+-1.77421e-15
+
+Joint opt_head_mount_joint
+Joint opt_head_mount_vertical_joint
+Joint opt_tilt_joint
+0.0426
+9.10077e-15
+2.87414e-15
+
+
+With additional yaw error:
+Joint opt_head_mount_joint
+Joint opt_head_mount_vertical_joint
+0.0452229
+-4.49323e-05
+
+Joint opt_head_mount_joint
+Joint opt_head_mount_vertical_joint
+Joint opt_tilt_joint
+-0.0493266
+-0.260775
+-0.0930638
+THIS RESULT MAKES SENSE: NOT ENOUGH MEASUREMENTS!!!
+
+
+Joints:
+0.4   0.3  0.3
+0.0   0.0  0.0
+0.1  -0.1 -0.1
+0.25  0.1 -0.1
+
+No additional yaw error
+Joint opt_head_mount_joint
+Joint opt_head_mount_vertical_joint
+0.0422798
+-1.05863e-16
+
+Joint opt_head_mount_joint
+Joint opt_head_mount_vertical_joint
+Joint opt_tilt_joint
+0.0422798
+-5.6319e-15
+-1.88881e-15
+
+With additional yaw error
+Joint opt_head_mount_joint
+Joint opt_head_mount_vertical_joint
+0.0442603
+-5.16144e-05
+
+Joint opt_head_mount_joint
+Joint opt_head_mount_vertical_joint
+Joint opt_tilt_joint
+0.0120277
+-0.108213
+-0.0366392
+
+

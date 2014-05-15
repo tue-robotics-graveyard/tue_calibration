@@ -522,6 +522,14 @@
     <child link="torso_lasertop"/>
   </joint>
   <!--========BUILD HEAD======-->
+  <link name="opt_head_mount_vertical"> <!-- Vertical, z-direction (base_link) -->
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.001"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+  
   <link name="opt_head_mount"> <!-- Horizontal, x-direction (base_link) -->
     <inertial>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
@@ -529,10 +537,20 @@
       <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
     </inertial>
   </link>
+  
   <joint name="opt_head_mount_joint" type="prismatic">
     <parent link="torso"/>
     <child link="opt_head_mount"/>
     <axis xyz="0 0 1"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+    <dynamics damping="3" friction="0.0"/>
+    <limit effort="1000" lower="-0.25" upper="0.25" velocity="1.0"/>
+  </joint>
+  
+  <joint name="opt_head_mount_vertical_joint" type="prismatic">
+    <parent link="opt_head_mount"/>
+    <child link="opt_head_mount_vertical"/>
+    <axis xyz="1 0 0"/>
     <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
     <dynamics damping="3" friction="0.0"/>
     <limit effort="1000" lower="-0.25" upper="0.25" velocity="1.0"/>
@@ -549,7 +567,7 @@
     </inertial>
   </link>
   <joint name="head_mount_joint" type="fixed">
-    <parent link="opt_head_mount"/>
+    <parent link="opt_head_mount_vertical"/>
     <child link="head_mount"/>
     <axis xyz="0 0 1"/>
     <origin rpy="  0.0 0.0 0.0" xyz="0.097 0.0 0.0"/>
@@ -648,6 +666,23 @@
     <limit effort="13.4" lower="-0.5" upper="0.88" velocity="1.0"/>
   </joint>
   <!--========BUILD KINECT======-->
+  <link name="opt_tilt"> <!-- z-direction (base_link) -->
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.001"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+  
+  <joint name="opt_tilt_joint" type="revolute">
+    <parent link="head"/>
+    <child link="opt_tilt"/>
+    <axis xyz="0 1 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+    <dynamics damping="3" friction="0.0"/>
+    <limit effort="1000" lower="-0.25" upper="0.25" velocity="1.0"/>
+  </joint>
+  
   <link name="opt_neck_lateral"> <!-- y-direction (base_link) -->
     <inertial>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
@@ -656,8 +691,8 @@
     </inertial>
   </link>
   
-  <joint name="opt_neck_lateral_joint" type="prismatic">
-    <parent link="head"/>
+  <joint name="opt_neck_lateral_joint" type="fixed">
+    <parent link="opt_tilt"/>
     <child link="opt_neck_lateral"/>
     <axis xyz="0 1 0"/>
     <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
