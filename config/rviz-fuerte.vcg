@@ -1,7 +1,7 @@
 Background\ ColorB=0
 Background\ ColorG=0
 Background\ ColorR=0
-Camera\ Config=0.309798 3.89575 4.43826 1.52397 0.782342 0.408298
+Camera\ Config=0.374796 4.1907 12.2765 0.302644 -0.0586893 0.914762
 Camera\ Type=rviz::OrbitViewController
 Camera.Enabled=0
 Camera.Image\ Rendering=background & overlay
@@ -31,8 +31,8 @@ LaserScan..AxisColorAxis=2
 LaserScan..AxisColorMax\ Value=10
 LaserScan..AxisColorMin\ Value=-10
 LaserScan..AxisColorUse\ Fixed\ Frame=1
-LaserScan..FlatColorColorB=1
-LaserScan..FlatColorColorG=1
+LaserScan..FlatColorColorB=0
+LaserScan..FlatColorColorG=0
 LaserScan..FlatColorColorR=1
 LaserScan..IntensityAutocompute\ Intensity\ Bounds=1
 LaserScan..IntensityChannel\ Name=intensity
@@ -47,7 +47,7 @@ LaserScan..IntensityMin\ Intensity=0
 LaserScan..IntensityUse\ full\ RGB\ spectrum=0
 LaserScan.Alpha=1
 LaserScan.Billboard\ Size=0.01
-LaserScan.Color\ Transformer=Intensity
+LaserScan.Color\ Transformer=FlatColor
 LaserScan.Decay\ Time=0
 LaserScan.Enabled=1
 LaserScan.Position\ Transformer=XYZ
@@ -58,9 +58,16 @@ LaserScan.Topic=/amigo/base_front_laser
 Marker.Enabled=1
 Marker.Marker\ Topic=/visualization_marker
 Marker.Queue\ Size=100
-Property\ Grid\ Splitter=589,78
-Property\ Grid\ State=expanded=.Global Options,TF.Enabled,TF.Frames,TF.Frames./amigo/base,TF.Frames./amigo/base_kinect/openni_camera,TF.Frames./amigo/base_kinect/openni_depth_frame,TF.Frames./amigo/base_kinect/openni_depth_optical_frame,TF.Frames./amigo/base_kinect/openni_rgb_frame,TF.Frames./amigo/base_kinect/openni_rgb_optical_frame,TF.Frames./amigo/base_laser,TF.Frames./amigo/base_link,TF.Frames./amigo/base_plate,TF.Frames./amigo/clavicles,TF.Frames./amigo/elbow_extra_block2_left,TF.Frames./amigo/elbow_extra_block2_right,TF.Frames./amigo/elbow_extra_block_left,TF.Frames./amigo/elbow_extra_block_right,TF.Frames./amigo/elbow_link4_left,TF.Frames./amigo/elbow_link4_right,TF.Frames./amigo/finger1_left,TF.Frames./amigo/finger1_phalanx_left,TF.Frames./amigo/finger1_phalanx_right,TF.Frames./amigo/finger1_right,TF.Frames./amigo/finger1_tip_left,TF.Frames./amigo/finger1_tip_phalanx_left,TF.Frames./amigo/finger1_tip_phalanx_right,TF.Frames./amigo/finger1_tip_right,TF.Frames./amigo/finger2_left,TF.Frames./amigo/finger2_phalanx_left,TF.Frames./amigo/finger2_phalanx_right,TF.Frames./amigo/finger2_right,TF.Frames./amigo/finger2_tip_left,TF.Frames./amigo/finger2_tip_phalanx_left,TF.Frames./amigo/finger2_tip_phalanx_right,TF.Frames./amigo/finger2_tip_right,TF.Frames./amigo/fore_arm_left,TF.Frames./amigo/fore_arm_right,TF.Frames./amigo/fore_arm_top_left,TF.Frames./amigo/fore_arm_top_right,TF.Frames./amigo/grippoint_left,TF.Frames./amigo/grippoint_right,TF.Frames./amigo/hand_left,TF.Frames./amigo/hand_right,TF.Frames./amigo/head,TF.Frames./amigo/head_mount,TF.Frames./amigo/lasertop,TF.Frames./amigo/logo,TF.Frames./amigo/neck_pan,TF.Frames./amigo/neck_tilt,TF.Frames./amigo/odom,TF.Frames./amigo/shoulder_link1_left,TF.Frames./amigo/shoulder_link1_right,TF.Frames./amigo/shoulder_link2_left,TF.Frames./amigo/shoulder_link2_right,TF.Frames./amigo/shoulder_mount_left,TF.Frames./amigo/shoulder_mount_right,TF.Frames./amigo/top_kinect/openni_camera,TF.Frames./amigo/top_kinect/openni_depth_frame,TF.Frames./amigo/top_kinect/openni_depth_optical_frame,TF.Frames./amigo/top_kinect/openni_rgb_frame,TF.Frames./amigo/top_kinect/openni_rgb_optical_frame,TF.Frames./amigo/torso,TF.Frames./amigo/torso_assist_slider_back,TF.Frames./amigo/torso_assist_slider_left,TF.Frames./amigo/torso_assist_slider_right,TF.Frames./amigo/torso_dummy,TF.Frames./amigo/torso_laser,TF.Frames./amigo/torso_lasertop,TF.Frames./amigo/torso_slider,TF.Frames./amigo/upper_arm_left,TF.Frames./amigo/upper_arm_right,TF.Frames./amigo/upper_arm_top_left,TF.Frames./amigo/upper_arm_top_right,TF.Frames./amigo/wrist_link6_left,TF.Frames./amigo/wrist_link6_right,TF.Frames./amigo/wrist_to_hand_block_left,TF.Frames./amigo/wrist_to_hand_block_right,TF.Frames./amigo/wrist_visual_left,TF.Frames./amigo/wrist_visual_right,TF.Frames./map,Marker.Enabled;splitterratio=0.5
-QMainWindow=000000ff00000000fd000000030000000000000199000002edfc0200000002fb000000100044006900730070006c0061007900730100000036000002ed000000ee00fffffffb0000000c00430061006d006500720061000000024f000000c10000001900ffffff0000000100000131000002edfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000036000000c10000006700fffffffb0000000a0056006900650077007301000000fd0000015f000000bb00fffffffb0000001200530065006c0065006300740069006f006e0100000262000000c10000006700ffffff000000030000059e0000003efc0100000001fb0000000800540069006d006501000000000000059e000002bf00ffffff000002c8000002ed00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+Property\ Grid\ Splitter=541,78
+Property\ Grid\ State=expanded=.Global Options,RobotModel.Enabled,LaserScan.Enabled,Marker.Enabled;splitterratio=0.5
+QMainWindow=000000ff00000000fd0000000300000000000001ec000002bdfc0200000002fb000000100044006900730070006c0061007900730100000036000002bd000000ee00fffffffb0000000c00430061006d006500720061020000010e000000c500000335000002840000000100000131000002bdfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000036000000b50000006700fffffffb0000000a0056006900650077007301000000f100000147000000bb00fffffffb0000001200530065006c0065006300740069006f006e010000023e000000b50000006700ffffff00000003000005a00000003efc0100000001fb0000000800540069006d00650100000000000005a0000002bf00ffffff00000277000002bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+RobotModel.Alpha=0.2
+RobotModel.Collision\ Enabled=0
+RobotModel.Enabled=0
+RobotModel.Robot\ Description=/amigo/robot_opt_description
+RobotModel.TF\ Prefix=
+RobotModel.Update\ Interval=0
+RobotModel.Visual\ Enabled=1
 TF.All\ Enabled=0
 TF.Enabled=1
 TF.Frame\ Timeout=15
@@ -73,34 +80,34 @@ Target\ Frame=<Fixed Frame>
 Tool\ 2D\ Nav\ GoalTopic=/move_base_simple/goal
 Tool\ 2D\ Pose\ EstimateTopic=initialpose
 [Display0]
+ClassName=rviz::RobotModelDisplay
+Name=RobotModel
+[Display1]
 ClassName=rviz::TFDisplay
 Name=TF
-[Display1]
+[Display2]
 ClassName=rviz::LaserScanDisplay
 Name=LaserScan
-[Display2]
+[Display3]
 ClassName=rviz::MarkerDisplay
 Name=Marker
-[Display3]
+[Display4]
 ClassName=rviz::CameraDisplay
 Name=Camera
-[Display4]
+[Display5]
 ClassName=rviz::GridDisplay
 Name=Grid
 [TF.Frames.]
-map.Enabled=0
 [TF.Frames./amigo]
 base.Enabled=0
 base_laser.Enabled=1
-base_link.Enabled=1
-base_plate.Enabled=0
+base_link.Enabled=0
+base_plate.Enabled=1
 clavicles.Enabled=0
 elbow_extra_block2_left.Enabled=0
 elbow_extra_block2_right.Enabled=0
 elbow_extra_block_left.Enabled=0
 elbow_extra_block_right.Enabled=0
-elbow_link4_left.Enabled=0
-elbow_link4_right.Enabled=0
 finger1_left.Enabled=0
 finger1_phalanx_left.Enabled=0
 finger1_phalanx_right.Enabled=0
@@ -126,19 +133,14 @@ grippoint_right.Enabled=0
 hand_left.Enabled=0
 hand_right.Enabled=0
 head.Enabled=0
-head_mount.Enabled=1
+head_mount.Enabled=0
 lasertop.Enabled=0
 logo.Enabled=0
-neck_pan.Enabled=0
-neck_tilt.Enabled=0
-odom.Enabled=0
-shoulder_link1_left.Enabled=0
-shoulder_link1_right.Enabled=0
-shoulder_link2_left.Enabled=0
-shoulder_link2_right.Enabled=0
+neck_pan.Enabled=1
+neck_tilt.Enabled=1
 shoulder_mount_left.Enabled=0
 shoulder_mount_right.Enabled=0
-torso.Enabled=1
+torso.Enabled=0
 torso_assist_slider_back.Enabled=0
 torso_assist_slider_left.Enabled=0
 torso_assist_slider_right.Enabled=0
@@ -163,13 +165,13 @@ openni_depth_optical_frame.Enabled=0
 openni_rgb_frame.Enabled=0
 openni_rgb_optical_frame.Enabled=0
 [TF.Frames./amigo/top_kinect]
-openni_camera.Enabled=0
+openni_camera.Enabled=1
 openni_depth_frame.Enabled=0
 openni_depth_optical_frame.Enabled=0
 openni_rgb_frame.Enabled=0
-openni_rgb_optical_frame.Enabled=1
+openni_rgb_optical_frame.Enabled=0
 [Window]
-Height=900
-Width=1440
-X=-1
-Y=-28
+Height=852
+Width=1442
+X=-6
+Y=-168

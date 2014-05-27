@@ -19,6 +19,7 @@ void Optimizer::init(KinematicChain *laser_chain, KinematicChain *kinect_chain) 
     laser_chain_ = laser_chain;
     kinect_chain_ = kinect_chain;
     // ToDo: don't hardcode
+    // ToDo: six dofs does not work!
     num_dofs = 3;
 }
 
@@ -41,7 +42,7 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
 
     /// Gain vector
     // ToDo: don't hardcode gain
-    Eigen::VectorXd gain; gain.resize(n_kinect_joints); for (unsigned int i = 0; i < gain.rows(); i++) gain(i) = 1;
+    Eigen::VectorXd gain; gain.resize(n_kinect_joints); for (unsigned int i = 0; i < gain.rows(); i++) gain(i) = 1.0;
 
     /// Resize variables
     error_vector_.resize(n_meas*num_dofs);
@@ -60,45 +61,71 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
     /// Vectors with joint measurements and optimization variables as joints
     KDL::JntArray q_kinect, q_laser;
     q_kinect.resize(n_kinect_joints);
-    //ToDo: fill properly with optimization data as well
+    q_kinect.data.setZero(); // This assumes that all optimization joints are initialized as zero!!!
 
-    for (unsigned int i = 0; i < data[0].kinect_joint_data.data.rows(); i++) {
-        q_kinect(i) = data[0].kinect_joint_data.data(i);
-    }
-    KDL::JntArray q_init = q_kinect;
     q_laser.resize(0);
+
+    /// Data for summary
+    std::vector<KDL::Vector> errors;
+    errors.resize(data.size());
+    std::vector<double> t_norm;
 
     double norm = 1.0;
     unsigned int iter = 0;
-    unsigned int max_iter = 10;
+    unsigned int max_iter = 100;
     /// While norm too large && iter < max_iter:
     while (norm > 0.001 && iter < max_iter) {
 
         /// For every measurement
         for (unsigned int i = 0; i < data.size(); i++) {
 
+            /// Update measurement data (weight = 0), keep optimization data (weight = 1)
+            for (unsigned int j = 0; j < data[i].kinect_joint_data.data.rows(); j++) {
+                if (weighting_matrix_(j) == 0) {
+                    q_kinect(j) = data[i].kinect_joint_data.data(j);
+                }
+            }
+
             /// Compute kinect_meas in root
             KDL::Frame kinect_pose = kinect_chain_->getFK(q_kinect);
-            std::cout << "Kinect pose in root = " << kinect_pose.p.x() << ", "
-                      << kinect_pose.p.y() << ", "
-                      << kinect_pose.p.z() << std::endl;
 
             KDL::Frame kinect_meas_in_root = kinect_pose * data[i].kinect_meas_in_kinect;
-            std::cout << "Kinect measurement in root = " << kinect_meas_in_root.p.x() << ", "
-                      << kinect_meas_in_root.p.y() << ", "
-                      << kinect_meas_in_root.p.z() << std::endl;
 
             /// Compute laser meas in root
             KDL::Frame laser_pose = laser_chain_->getFK(q_laser);
             KDL::Frame laser_meas_in_root = laser_pose * data[i].laser_meas_in_laser;
-            std::cout << "Laser measurement in root = " << laser_meas_in_root.p.x() << ", "
-                      << laser_meas_in_root.p.y() << ", "
-                      << laser_meas_in_root.p.z() << std::endl;
 
             KDL::Twist error = KDL::diff(kinect_meas_in_root, laser_meas_in_root);
-            std::cout << "Error = " << error.vel.x() << ", "
-                      << error.vel.y() << ", "
-                      << error.vel.z() << ", norm^2 = " << error.vel.x()*error.vel.x() + error.vel.y()*error.vel.y() + error.vel.z()*error.vel.z() <<  std::endl;
+
+            /// If errors too large: don't take this measurement into account
+            double threshold = 0.2;
+            if (fabs(error.vel.x()) > threshold || fabs(error.vel.y()) > threshold || fabs(error.vel.z()) > threshold) {
+                std::cout << "Warning: error of measurement " << i << " = " << error.vel.x() << ", "
+                          << error.vel.y() << ", "
+                          << error.vel.z() << ", norm^2 = " << error.vel.x()*error.vel.x() + error.vel.y()*error.vel.y() + error.vel.z()*error.vel.z() <<
+                             ", discarding measurement!!!" << std::endl;
+                continue;
+            }
+            errors[i] = KDL::Vector(error.vel.x(), error.vel.y(), error.vel.z());
+
+            /// Print initial measurement to screen
+            if (iter == 0) {
+                std::cout << "Kinect pose in root = " << kinect_pose.p.x() << ", "
+                          << kinect_pose.p.y() << ", "
+                          << kinect_pose.p.z() << std::endl;
+
+                std::cout << "Kinect measurement in root = " << kinect_meas_in_root.p.x() << ", "
+                          << kinect_meas_in_root.p.y() << ", "
+                          << kinect_meas_in_root.p.z() << std::endl;
+
+                std::cout << "Laser measurement in root = " << laser_meas_in_root.p.x() << ", "
+                          << laser_meas_in_root.p.y() << ", "
+                          << laser_meas_in_root.p.z() << std::endl;
+
+                std::cout << "Error = " << error.vel.x() << ", "
+                          << error.vel.y() << ", "
+                          << error.vel.z() << ", norm^2 = " << error.vel.x()*error.vel.x() + error.vel.y()*error.vel.y() + error.vel.z()*error.vel.z() <<  std::endl;
+            }
 
             /// Put error in vector
             if (num_dofs == 3) {
@@ -118,7 +145,6 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
             }
 
             /// Compute Kinect Jacobian
-            // ToDo: also insert optimization data
             KDL::Jacobian kinect_jacobian;
             kinect_chain_->getJacobian(q_kinect, kinect_jacobian);
             /// Change reference point: error is w.r.t. measurements
@@ -127,16 +153,14 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
             //std::cout << "Kinect Jacobian = \n " << kinect_jacobian.data << std::endl;
 
             /// Fill in Jacobian
-            // ToDo: weighting matrices to exclude measured joints
             // Weigh entire matrix or per Jacobian?
             total_jacobian_.block(num_dofs*i, 0, num_dofs, kinect_jacobian.data.cols()) = kinect_jacobian.data.block(0, 0, num_dofs, kinect_jacobian.data.cols());
 
         }
-        //  ToDo: Fill joint array with current values of joints to optimize
 
         ///  Compute generalized pseudoinverse of complete Jacobian
         // From: WBC/ComputeNullspace...
-        //std::cout << "Jacobian = \n " << total_jacobian_ << std::endl;
+       // std::cout << "Jacobian = \n " << total_jacobian_ << std::endl;
         Eigen::MatrixXd WJ = total_jacobian_ * weighting_matrix_.asDiagonal() * total_jacobian_.transpose(); // Weighted Jacobian
         Eigen::JacobiSVD<Eigen::MatrixXd> WJsvd(WJ, Eigen::ComputeThinU | Eigen::ComputeFullV);
 
@@ -161,20 +185,48 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
 
         ///  Add Delta q to q current
         for (unsigned int i = 0; i < delta_q.rows(); i++) {
-            if (weighting_matrix_(i) == 1.0) {
-                std::cout << joint_names[i] << ": old = " << q_kinect(i) << ", delta = " << delta_q(i) << ", new = " << q_kinect(i)+delta_q(i) << std::endl;
-            }
-            q_kinect(i) += delta_q(i);
+            //q_kinect(i) += delta_q(i);
+            q_kinect(i) += delta_q(i)/n_meas;
         }
 
         norm = error_vector_.norm();
-        std::cout << "Iteration: " << iter << ", norm: " << norm << std::endl;
+        t_norm.push_back(norm);
+        //std::cout << "Iteration: " << iter+1 << ", norm: " << norm << "\n" << std::endl;
+
+        /// Print initial measurement to screen
+        if (iter == 0) {
+            for (unsigned int i = 0; i < delta_q.rows(); i++) {
+                if (weighting_matrix_(i) == 1.0) {
+                    std::cout << joint_names[i] << ": old = " << q_kinect(i) << ", delta = " << delta_q(i) << ", new = " << q_kinect(i)+delta_q(i) << std::endl;
+                }
+            }
+        }
+
         ++iter;
 
     }
-    std::cout << "Optimization converged after " << iter << " of " << max_iter << " iterations, norm = " << norm << std::endl;
+
+    /// Summarize results
+    std::cout << "\nSUMMARY\n" << std::endl;
+    std::cout << "Optimization converged after " << iter << " of " << max_iter << " iterations, norm = " << norm << "\n" << std::endl;
     for (unsigned int i = 0; i < q_kinect.data.rows(); i++) {
-        std::cout << "Joint " << i << ", init: " << q_init(i) << ", optimized: " << q_kinect(i) << std::endl;
+        if (weighting_matrix_(i) == 1) {
+            std::cout << "Joint " << joint_names[i] << std::endl;//", optimized: " << q_kinect(i) << std::endl;
+            optimized_joints_[joint_names[i]] = q_kinect(i);
+        }
+    }
+    for (unsigned int i = 0; i < q_kinect.data.rows(); i++) {
+        if (weighting_matrix_(i) == 1) {
+            std::cout << q_kinect(i) << std::endl;
+        }
+    }
+    std::cout << "\n" << std::endl;
+    for (unsigned int i = 0; i < data.size(); i++) {
+        std::cout << "Error of measurement " << i+1 << ": x = " << errors[i].x() << ", y = " << errors[i].y() << ", z = " << errors[i].z() << std::endl;
+    }
+    std::cout << "\n" << std::endl;
+    for (unsigned int i = 0; i < t_norm.size(); i++) {
+        std::cout << "Norm " << i << " = " << t_norm[i] << std::endl;
     }
 
     // Debug
@@ -184,4 +236,8 @@ bool Optimizer::optimize(std::vector<OptimizationData>& data) {
 
     return true;
 
+}
+
+std::map<std::string, double> Optimizer::getOptimizedJoints() const {
+    return optimized_joints_;
 }

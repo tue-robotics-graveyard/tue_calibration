@@ -31,6 +31,10 @@ public:
      *  @param optimization_data: data from the measurements */
     bool optimize(std::vector<OptimizationData> &data);
 
+    /** Returns optimized joints
+     *  @return Map with joint name and corresponding value */
+    std::map<std::string, double> getOptimizedJoints() const;
+
 private:
 
     /** Kinematic chain objects to compute forward kinematics and Jacobians */
@@ -53,6 +57,10 @@ private:
 
     /** Marker publisher */
     MarkerPublisher marker_pub_;
+
+    /** Optimized joints */
+    std::map<std::string, double> optimized_joints_;
+
 };
 
 #endif

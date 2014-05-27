@@ -25,11 +25,23 @@ void Calibration::init() {
     kinect_client_ = nh.serviceClient<tue_calibration::getPose>("/kinect_checkerboard_detector/toggle_checkerboard_detector");
 
     joint_state_sub_ = nh.subscribe("/amigo/joint_states", 5, &Calibration::jointStateCallback, this);
+    joint_state_pub_ = nh.advertise<sensor_msgs::JointState>("/amigo/joint_states", 1);
     toggle_sub_ = nh.subscribe("toggle_calibration", 1, &Calibration::toggleCallback, this);
 
     /// Kinematic chain objects with solvers
     laser_chain_ = new KinematicChain("base_link", "base_laser");
     kinect_chain_ = new KinematicChain("base_link", "top_kinect/openni_rgb_optical_frame");
+
+    /// Publish zero joint states for optimization joints
+    sensor_msgs::JointState jointstate_msg;
+    std::vector<std::string> joint_names = kinect_chain_->getJointNames();
+    for (unsigned int i = 0; i < joint_names.size(); i++) {
+        if (kinect_chain_->getJointType(i) == optimize) {
+            jointstate_msg.name.push_back(joint_names[i]);
+            jointstate_msg.position.push_back(0.0);
+        }
+    }
+    joint_state_pub_.publish(jointstate_msg);
 
     ///// Test FK
     //KDL::JntArray qtest; qtest.resize(0);
@@ -47,7 +59,6 @@ void Calibration::init() {
     //for (unsigned int i = 0; i < joint_names.size(); ++i) std::cout << joint_names[i] << " = " << qtest(i) << std::endl;
     //KDL::Frame testfk = kinect_chain_->getFK(qtest);
     //ROS_INFO("Testfk kinect = [%f, %f, %f]", testfk.p.x(), testfk.p.y(), testfk.p.z());
-
 
     /// Offsets
     kinect_offset_ = KDL::Frame();
@@ -144,12 +155,22 @@ bool Calibration::addMeasurement() {
 
 bool Calibration::calibrate() {
 
+    /// Optimize
     if (optimizer_.optimize(optimization_data_)) {
         ROS_INFO("Optimization finished");
-        return true;
     } else {
         ROS_ERROR("Optimization failed");
+        return false;
     }
+
+    /// Publish result on jointstate topic
+    std::map<std::string, double> opt_joints = optimizer_.getOptimizedJoints();
+    sensor_msgs::JointState jointstate_msg;
+    for (std::map<std::string, double>::iterator iter = opt_joints.begin(); iter != opt_joints.end(); ++iter) {
+        jointstate_msg.name.push_back(iter->first);
+        jointstate_msg.position.push_back(iter->second);
+    }
+    joint_state_pub_.publish(jointstate_msg);
 
     return true;
 }

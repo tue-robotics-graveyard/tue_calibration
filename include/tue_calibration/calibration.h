@@ -70,6 +70,9 @@ private:
     /** Subscriber to joint states */
     ros::Subscriber joint_state_sub_;
 
+    /** Joint state pub: publishes the 'optimization' joint states */
+    ros::Publisher joint_state_pub_;
+
     /** Topic to toggle measurements */
     ros::Subscriber toggle_sub_;
 
